@@ -8,12 +8,38 @@
 
     async function getUser(user){
         //Template String
-        const profileResponse = await fetch(`${url}/${user}?client_id=${client_id}&client_secret=${client_secret}`);
+        let profileResponse;
+        await fetch(`${url}/${user}?client_id=${client_id}&client_secret=${client_secret}`)
+            .then(handleErrors)
+            .then(function(response) {
+                profileResponse = response;
+            })
+            .catch(function(error) {
+                returnError()
+            });
 
         //CONVERTENDO EM JSON
         const profile = await profileResponse.json();
-
+        profile.ver_perfil = 'Ver perfil';
         return {profile};
+    }
+    // FUNCAO QUE TRATA ERROS
+    function handleErrors(response) {
+        if (!response.ok) {
+            throw Error(response.statusText);
+        }
+        return response;
+    }
+    function returnError() {
+        let user = {
+            avatar_url: 'dist/images/interrogation.jpg',
+            public_repos: '?',
+            followers: '?',
+            following: '?',
+            html_url: '#',
+            ver_perfil: 'Digite um perfil válido.'
+            }
+        showProfile(user)
     }
 
     function showProfile(user){
@@ -28,7 +54,7 @@
                         <li class="list-group-item">Seguindo: <span class="badge badge-info">${user.following}</span></li>
                     </ul>
                     <div class="class-body">
-                        <a href="${user.html_url}" target="_blank" class="btn btn-warning btn-block">Ver perfil</a>
+                        <a href="${user.html_url}" target="_blank" class="btn btn-warning btn-block">${user.ver_perfil}</a>
                     </div>
                 </div>
             </div>
@@ -37,12 +63,13 @@
 
     search.addEventListener("keyup", e =>{
         const user = e.target.value;
-
-        if(user.length > 0){
+        console.log(user.length)
+        if(user.length > 0) {
             getUser(user).then(res => { 
                 showProfile(res.profile);
             });
         }
     });
+
 })();
 
